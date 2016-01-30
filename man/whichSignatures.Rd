@@ -7,10 +7,10 @@
 whichSignatures(tumor.ref = NA, sample.id,
   signatures.ref = signatures.nature2013, associated = c(),
   signatures.limit = NA, signature.cutoff = 0.06, contexts.needed = FALSE,
-  trimer.counts.loc)
+  tri.counts.method = "default")
 }
 \arguments{
-\item{tumor.ref}{Either a data frame or location of input text file, where
+\item{tumor.ref}{Either a data frame or location of input text file, where 
 rows are samples, columns are trinucleotide contexts}
 
 \item{sample.id}{Name of sample -- should be rowname of tumor.ref}
@@ -23,28 +23,46 @@ signatures tested to only the ones listed.}
 
 \item{signatures.limit}{Number of signatures to limit the search to}
 
-\item{signature.cutoff}{Discard any signature contributions with a weight
+\item{signature.cutoff}{Discard any signature contributions with a weight 
 less than this amount}
 
-\item{contexts.needed}{FALSE if tumor.file is a context file, TRUE if it is
+\item{contexts.needed}{FALSE if tumor.file is a context file, TRUE if it is 
 only mutation counts}
 
-\item{trimer.counts.loc}{Location of counts of trinucleotides in region 
-covered by sequencing. Only required if contexts.needed = TRUE .}
+\item{tri.counts.method}{Set to either:
+\itemize{
+ \item 'default' -- no further normalization \item 'exome' -- normalized by
+  number of times each trinucleotide context is observed in the exome \item
+  'genome' -- normalized by number of times each trinucleotide context is
+  observed in the genome \item 'exome2genome' -- multiplied by a ratio of that
+  trinucleotide's occurence in the genome to the trinucleotide's occurence in
+  the exome \item data frame containing user defined scaling factor -- count
+  data for each trinucleotide context is multiplied by the corresponding value
+  given in the data frame }}
 }
 \value{
 A list of the weights for each signatures, the product when those are
   multiplied on the signatures, the difference between the tumor sample and 
-  product, the tumor sample tricontext distribution given, and the unknown
+  product, the tumor sample tricontext distribution given, and the unknown 
   weight.
 }
 \description{
 Determines how much of each signature is present in the sample given
 }
+\section{Normalization}{
+ If the input data frame only contains the counts of
+  the mutations observed in each context, then the data frame must be
+  normalized. In these cases, the value of `contexts.needed` should be TRUE.
+  \cr The parameter, `tri.counts.method`, determines any additional
+  normalization performed. Any user provided data frames should match the
+  format of `tri.counts.exome` and `tri.counts.genome`. \cr The method of
+  normalization chosen should match how the input signatures were normalized.
+  For exome data, the default method is appropriate for the signatures
+  included in this package.
+}
 \examples{
 test = whichSignatures(tumor.ref = randomly.generated.tumors,
                        sample.id = "2", 
-                       contexts.needed = FALSE,
-                       trimer.counts.loc = tri.counts.exome)
+                       contexts.needed = FALSE)
 }
 

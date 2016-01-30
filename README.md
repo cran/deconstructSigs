@@ -59,32 +59,46 @@ Two signatures matrices of k rows and 96 columns are also supplied as data in th
 The function `whichSignatures` takes these two inputs (`tumor.ref`, `signatures.ref`) and uses an iterative approach to determine weights to assign to each signature in order to best recontruct the mutational profile of the input tumor sample.
 
 ``` r
-# Determine the signatures contributing to the two example samples
+# Determine the signatures contributing an already normalized sample
 test = whichSignatures(tumor.ref = randomly.generated.tumors, 
                        signatures.ref = signatures.nature2013, 
                        sample.id = 2)
 ```
 
-If the input data frame only contains the counts of the mutations observed in each context, as is the case with the output from `mut.to.sigs.input`, then additional parameters must be given to `whichSignatures` to normalize the data.
+#### `A bit about normalization`
 
-In these cases, the value of `contexts.needed` should be TRUE and `trimer.counts.loc` parameter should be used to point to the location of a file containing the number of times each trinucleotide context is found in the sequencing region or a loaded data frame with this information. Included with the package is `tri.counts.exome`, which contains the trinucleotide counts for an exome and `tri.counts.genome`, which contains the trinucleotide counts for the hg19 genome.
+If the input data frame only contains the counts of the mutations observed in each context, as is the case with the output from `mut.to.sigs.input`, then the data frame must be normalized. In these cases, the value of `contexts.needed` should be TRUE. An error will be raised if each row of the input data frame does not sum to 1.
 
-For the example used in `mut.to.sigs.input`, the call to `whichSignatures` would look as follows:
+An additional parameter to `whichSignatures` will dictate how any further normalization is done. This parameter, `tri.counts.method`, is originally set to 'default', which does not result in further normalization.
 
 ``` r
 # Determine the signatures contributing to the two example samples
 sample_1 = whichSignatures(tumor.ref = sigs.input, 
                            signatures.ref = signatures.nature2013, 
                            sample.id = 1, 
-                           contexts.needed = TRUE, 
-                           trimer.counts.loc = tri.counts.exome)
+                           contexts.needed = TRUE,
+                           tri.counts.method = 'default')
 
 sample_2 = whichSignatures(tumor.ref = sigs.input, 
                            signatures.ref = signatures.nature2013, 
                            sample.id = 2, 
-                           contexts.needed = TRUE, 
-                           trimer.counts.loc = tri.counts.exome)
+                           contexts.needed = TRUE,
+                           tri.counts.method = 'default')
 ```
+
+If `tri.counts.method` is set to 'exome', the input data frame is normalized by number of times each trinucleotide context is observed in the exome.
+
+If `tri.counts.method` is set to 'genome', the input data frame is normalized by number of times each trinucleotide context is observed in the genome.
+
+If `tri.counts.method` is set to 'exome2genome', normalization is performed to reflect the absolute frequency of each trinucleotide context as it would occur across the whole genome. Thus the count data for each trinucleotide context is multiplied by a ratio of that trinucleotide's occurence in the genome to the trinucleotide's occurence in the exome.
+
+Finally, if `tri.counts.method` is set to a data frame present in the workspace, normalization is done by using that data frame as a scaling factor. The count data for each trinucleotide context is multiplied by the corresponding value given in the data frame.
+
+Included with the package are `tri.counts.exome`, which contains the trinucleotide counts for an exome and `tri.counts.genome`, which contains the trinucleotide counts for the hg19 genome. These are the counts used for normalization when `tri.counts.method` is 'exome', 'genome' or 'exome2genome'. Any user provided data frames should match the format of `tri.counts.exome` and `tri.counts.genome`.
+
+The method of normalization chosen should match how the input signatures were normalized. For exome data, the default method is appropriate for the signatures included in this package.
+
+#### `Optional parameters to whichSignatures()`
 
 Additional optional parameters to `whichSignatures` are:
 
@@ -93,6 +107,8 @@ Additional optional parameters to `whichSignatures` are:
 -   `signatures.limit` -- Number of signatures to limit the search to.
 
 -   `signature.cutoff` -- Discard any signature contributions with a weight less than this amount.
+
+#### `Output from whichSignatures()`
 
 The output of `whichSignatures` is a list of 5 elements:
 
@@ -111,9 +127,13 @@ The output of `whichSignatures` is a list of 5 elements:
 The output from `whichSignatures` can be visualized using the function `plotSignatures`. This function takes the `whichSignatures` output (`sigs.output`) and an optional identifying parameter (`sub`).
 
 ``` r
+# Plot example
+plot_example <- whichSignatures(tumor.ref = randomly.generated.tumors, 
+                       signatures.ref = signatures.nature2013, 
+                       sample.id = 13)
+
 # Plot output
-plotSignatures(sample_1)
-plotSignatures(sample_2)
+plotSignatures(plot_example, sub = 'example')
 ```
 
 ![alt text](inst/extdata/plotSignatures.png)
@@ -124,8 +144,7 @@ The output from `whichSignatures` can be visualized using the function `makePie`
 
 ``` r
 # Plot output
-makePie(sample_1)
-makePie(sample_2)
+makePie(plot_example, sub = 'example')
 ```
 
 ![alt text](inst/extdata/makePie.png)

@@ -7,10 +7,9 @@
 #' @param trimer.counts count of the number of times each trimer is found in the area sequenced
 #' @return Returns a normalized column based on the trimer counts
 #' @export
-norm.it <- function(col, trimer.counts){
-  #trimer  <- substr(colnames(col), 1, 3)
+norm.it <- function(col, trimer.ratio){
   trimer  <- paste(substr(colnames(col), 1, 1), substr(colnames(col), 3, 3), substr(colnames(col), 7, 7), sep = "")
-  new.col <- col/trimer.counts[trimer,]
+  new.col <- col*trimer.ratio[trimer,]
   return(new.col)
 }
 
@@ -30,7 +29,7 @@ norm.it <- function(col, trimer.counts){
 #'   context is seen in sequencing area or location where the .txt file is found
 #' @return Returns the trinucleotide context fraction
 #' @export
-getTriContextFraction <- function(mut.counts.ref, trimer.counts.ref){
+getTriContextFraction <- function(mut.counts.ref, trimer.counts.method){
     
   if(exists("mut.counts.ref", mode = "list")){
     mut.counts <- mut.counts.ref
@@ -42,26 +41,84 @@ getTriContextFraction <- function(mut.counts.ref, trimer.counts.ref){
     }
   }
   
-  if(exists("trimer.counts.ref", mode = "list")){
-    trimer.counts <- trimer.counts.ref
-  } else {
-    if(file.exists(trimer.counts.ref)){
-      trimer.counts <- utils::read.table(trimer.counts.ref, sep = "\t", header = TRUE, as.is = TRUE, check.names = FALSE)
-    } else {
-      print("trimer.counts.ref is neither a file nor a loaded data frame")
+  if(class(trimer.counts.method) == 'character'){
+  
+    # if default, return mut counts that sum to 1
+    if(trimer.counts.method == 'default'){
+      # make each row sum to 1
+      norm.mut.counts           <- mut.counts/rowSums(mut.counts)
+      return(norm.mut.counts)
     }
+    
+    # return mut counts divided by number of times that trinucleotide context is observed in the genome
+    if(trimer.counts.method == 'genome'){
+  
+      tri.counts.wgs <- tri.counts.genome
+      multiplicative.ratio      <- 1/tri.counts.wgs
+      norm.mut.counts           <- sapply(colnames(mut.counts), function(x) {norm.it(mut.counts[,x,drop=F], trimer.ratio = multiplicative.ratio)})
+      norm.mut.counts           <- data.frame(norm.mut.counts, row.names = rownames(mut.counts))
+      colnames(norm.mut.counts) <- colnames(mut.counts)
+      
+      # make each row sum to 1
+      norm.mut.counts           <- norm.mut.counts/rowSums(norm.mut.counts)
+      return(norm.mut.counts)
+   
+    }
+    
+    # return mut counts divided by number of times that trinucleotide context is observed in the exome
+    if(trimer.counts.method == 'exome'){
+      
+      tri.counts.wes <- tri.counts.exome
+      multiplicative.ratio      <- 1/tri.counts.wes
+      norm.mut.counts           <- sapply(colnames(mut.counts), function(x) {norm.it(mut.counts[,x,drop=F], trimer.ratio = multiplicative.ratio)})
+      norm.mut.counts           <- data.frame(norm.mut.counts, row.names = rownames(mut.counts))
+      colnames(norm.mut.counts) <- colnames(mut.counts)
+      
+      # make each row sum to 1
+      norm.mut.counts           <- norm.mut.counts/rowSums(norm.mut.counts)
+      return(norm.mut.counts)
+    
+    }
+    
+    # use the ratio of WGS/WES to normalize the input data
+    if(trimer.counts.method == 'exome2genome'){
+      
+      tri.counts.wgs <- tri.counts.genome
+      tri.counts.wes <- tri.counts.exome
+  
+      # multiply by WGS/WES tricontext ratio
+      wgs.wes.ratio             <- tri.counts.wgs/tri.counts.wes
+      norm.mut.counts           <- sapply(colnames(mut.counts), function(x) {norm.it(mut.counts[,x,drop=F], trimer.ratio = wgs.wes.ratio)})
+      norm.mut.counts           <- data.frame(norm.mut.counts, row.names = rownames(mut.counts))
+      colnames(norm.mut.counts) <- colnames(mut.counts)
+      
+      # make each row sum to 1
+      norm.mut.counts           <- norm.mut.counts/rowSums(norm.mut.counts)
+      return(norm.mut.counts)
+    
+    }
+    
+    if(!trimer.counts.method %in% c('default', 'exome', 'genome', 'exome2genome')){
+      
+      stop(paste(trimer.counts.method, ' is not set to one of the available options (\'default\', \'exome\', \'genome\', \'exome2genome\') and is not a data frame.', sep = ''))
+      
+    }
+    
   }
   
-  # divide by trimer count
-  norm.mut.counts           <- sapply(colnames(mut.counts), function(x) {norm.it(mut.counts[,x,drop=F], trimer.counts = trimer.counts)})
-  norm.mut.counts           <- data.frame(norm.mut.counts, row.names = rownames(mut.counts))
-  colnames(norm.mut.counts) <- colnames(mut.counts)
-  
-  # make each row sum to 1
-  norm.mut.counts           <- apply(norm.mut.counts, 1, function(x) {x/sum(x)})
-  norm.mut.counts           <- t(norm.mut.counts)
-  
-  return(norm.mut.counts)
+  if(class(trimer.counts.method) %in% c('data.frame', 'matrix')){
+    
+    tri.counts.ratio <- trimer.counts.method
+
+    norm.mut.counts           <- sapply(colnames(mut.counts), function(x) {norm.it(mut.counts[,x,drop=F], trimer.ratio = tri.counts.ratio)})
+    norm.mut.counts           <- data.frame(norm.mut.counts, row.names = rownames(mut.counts))
+    colnames(norm.mut.counts) <- colnames(mut.counts)
+    
+    # make each row sum to 1
+    norm.mut.counts           <- norm.mut.counts/rowSums(norm.mut.counts)
+    return(norm.mut.counts)
+    
+  }
   
 }
 

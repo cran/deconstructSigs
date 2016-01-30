@@ -52,7 +52,7 @@ findComp = function(tri, nr = FALSE) {
 #'   mutation with that trinucleotide context is seen in the sample.
 #' @examples
 #' \dontrun{
-#' sigs.input = mut.to.sigs.input(mut.ref = sample.mut.ref, sample.mut.ref, 
+#' sigs.input = mut.to.sigs.input(mut.ref = sample.mut.ref, 
 #'                                sample.id = "Sample", 
 #'                                chr = "chr", 
 #'                                pos = "pos", 
@@ -60,7 +60,7 @@ findComp = function(tri, nr = FALSE) {
 #'                                alt = "alt")
 #'}
 #' @export
-mut.to.sigs.input = function(mut.ref, sample.id, chr, pos, ref, alt){
+mut.to.sigs.input = function(mut.ref, sample.id = 'Sample', chr = 'chr', pos = 'pos', ref = 'ref', alt = 'alt'){
   
   if(exists("mut.ref", mode = "list")){
     mut.full <- mut.ref
@@ -130,6 +130,8 @@ mut.to.sigs.input = function(mut.ref, sample.id, chr, pos, ref, alt){
       }
     }
   }
+  
+  all.tri <- all.tri[order(substr(all.tri, 3, 5))]
   
   final.matrix = matrix(0, ncol = 96, nrow = length(unique(mut[,sample.id])))
   colnames(final.matrix) = all.tri
