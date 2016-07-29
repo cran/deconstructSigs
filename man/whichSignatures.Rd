@@ -13,7 +13,8 @@ whichSignatures(tumor.ref = NA, sample.id,
 \item{tumor.ref}{Either a data frame or location of input text file, where 
 rows are samples, columns are trinucleotide contexts}
 
-\item{sample.id}{Name of sample -- should be rowname of tumor.ref}
+\item{sample.id}{Name of sample -- should be rowname of tumor.ref. Optional
+if the tumor.ref contains one single sample}
 
 \item{signatures.ref}{Either a data frame or location of signature text file,
 where rows are signatures, columns are trinucleotide contexts}
@@ -36,7 +37,9 @@ only mutation counts}
   'genome' -- normalized by number of times each trinucleotide context is
   observed in the genome \item 'exome2genome' -- multiplied by a ratio of that
   trinucleotide's occurence in the genome to the trinucleotide's occurence in
-  the exome \item data frame containing user defined scaling factor -- count
+  the exome \item 'genome2exome' -- multiplied by a ratio of that
+  trinucleotide's occurence in the exome to the trinucleotide's occurence in
+  the genome \item data frame containing user defined scaling factor -- count
   data for each trinucleotide context is multiplied by the corresponding value
   given in the data frame }}
 }
@@ -57,8 +60,9 @@ Determines how much of each signature is present in the sample given
   normalization performed. Any user provided data frames should match the
   format of `tri.counts.exome` and `tri.counts.genome`. \cr The method of
   normalization chosen should match how the input signatures were normalized.
-  For exome data, the default method is appropriate for the signatures
-  included in this package.
+  For exome data, the 'exome2genome' method is appropriate for the signatures
+  included in this package. For whole genome data, use the 'default' method
+  to obtain consistent results.
 }
 \examples{
 test = whichSignatures(tumor.ref = randomly.generated.tumors,

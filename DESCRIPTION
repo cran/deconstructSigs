@@ -1,8 +1,8 @@
 Package: deconstructSigs
 Type: Package
 Title: Identifies Signatures Present in a Tumor Sample
-Version: 1.6.0
-Date: 2016-01-28
+Version: 1.8.0
+Date: 2016-07-26
 Author: Rachel Rosenthal
 Maintainer: Rachel Rosenthal <rachel.rosenthal.14@ucl.ac.uk>
 Description: Takes sample information in the form of the fraction of mutations
@@ -10,13 +10,14 @@ Description: Takes sample information in the form of the fraction of mutations
     of published signatures that, when summed, most closely reconstructs the
     mutational profile.
 License: GPL (>= 2)
-Imports: reshape2, BSgenome, BSgenome.Hsapiens.UCSC.hg19, grDevices,
-        graphics, utils
+Imports: reshape2, BSgenome, BSgenome.Hsapiens.UCSC.hg19, GenomeInfoDb,
+        grDevices, graphics, utils
+Suggests: VariantAnnotation
 LazyData: yes
 URL: https://github.com/raerose01/deconstructSigs
 BugReports: https://github.com/raerose01/deconstructSigs/issues
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-01-29 13:11:01 UTC; rachel
+Packaged: 2016-07-29 12:30:13 UTC; rachel
 Repository: CRAN
-Date/Publication: 2016-01-30 00:09:19
+Date/Publication: 2016-07-29 18:27:06
